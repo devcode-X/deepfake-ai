@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DeepFake Detector — Pipeline Diagram</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#08111f;color:#edf2ff;min-height:100vh;overflow-x:hidden}
+.bg{position:fixed;inset:0;z-index:0;background:radial-gradient(circle at 20% 10%,rgba(58,163,255,.15),transparent 40%),radial-gradient(circle at 80% 20%,rgba(113,216,255,.1),transparent 35%),radial-gradient(circle at 50% 80%,rgba(238,90,36,.08),transparent 40%),linear-gradient(180deg,#08111f,#050b14)}
+.container{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:2rem 1.5rem 4rem}
+h1{text-align:center;font-size:2.4rem;font-weight:800;background:linear-gradient(135deg,#3aa3ff,#71d8ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.3rem}
+.subtitle{text-align:center;color:#9fb3d1;font-size:1rem;margin-bottom:2.5rem}
+.stage{margin-bottom:1.2rem;animation:fadeUp .6s ease both}
+.stage:nth-child(2){animation-delay:.1s}.stage:nth-child(3){animation-delay:.2s}.stage:nth-child(4){animation-delay:.3s}.stage:nth-child(5){animation-delay:.4s}.stage:nth-child(6){animation-delay:.5s}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.stage-header{display:flex;align-items:center;gap:.7rem;margin-bottom:.7rem}
+.stage-num{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.95rem;flex-shrink:0}
+.stage-title{font-size:1.15rem;font-weight:700}
+.stage-loc{font-size:.75rem;padding:3px 10px;border-radius:99px;font-weight:600;margin-left:auto;white-space:nowrap}
+.card{border-radius:18px;padding:1.3rem 1.5rem;border:1px solid rgba(113,216,255,.15);background:linear-gradient(135deg,rgba(15,29,51,.95),rgba(8,17,31,.9));box-shadow:0 8px 32px rgba(0,0,0,.25);position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;inset:0;border-radius:18px;padding:1px;background:linear-gradient(135deg,rgba(58,163,255,.25),transparent,rgba(113,216,255,.15));-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+.steps{display:flex;flex-wrap:wrap;gap:.7rem;align-items:stretch}
+.step{flex:1;min-width:160px;padding:.9rem 1rem;border-radius:12px;border:1px solid rgba(113,216,255,.12);background:rgba(19,39,67,.5);position:relative;transition:transform .2s,box-shadow .2s}
+.step:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(58,163,255,.15)}
+.step-icon{font-size:1.4rem;margin-bottom:.35rem}
+.step-name{font-weight:700;font-size:.85rem;margin-bottom:.25rem}
+.step-desc{font-size:.75rem;color:#9fb3d1;line-height:1.45}
+.arrow-down{display:flex;justify-content:center;margin:.25rem 0;opacity:.6}
+.arrow-down svg{width:28px;height:28px}
+.arrow-right{display:flex;align-items:center;padding:0 .2rem;opacity:.5}
+.arrow-right svg{width:20px;height:20px}
+.models-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.7rem}
+.model-card{padding:.85rem 1rem;border-radius:12px;border:1px solid rgba(255,159,67,.2);background:rgba(255,159,67,.06);transition:transform .2s,box-shadow .2s}
+.model-card:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(255,159,67,.12)}
+.model-card .step-name{color:#ff9f43}
+.vlm-card{border-color:rgba(238,90,36,.25);background:rgba(238,90,36,.06)}
+.vlm-card .step-name{color:#ee5a24}
+.output-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.7rem}
+.output-item{padding:.75rem 1rem;border-radius:12px;border:1px solid rgba(0,210,130,.2);background:rgba(0,210,130,.06);text-align:center}
+.output-item .step-icon{font-size:1.3rem}
+.output-item .step-name{color:#00d282;font-size:.8rem}
+.s0 .stage-num{background:linear-gradient(135deg,#3aa3ff,#2186d6);color:#fff}
+.s1 .stage-num{background:linear-gradient(135deg,#71d8ff,#3aa3ff);color:#08111f}
+.s2 .stage-num{background:linear-gradient(135deg,#a29bfe,#6c5ce7);color:#fff}
+.s3 .stage-num{background:linear-gradient(135deg,#ff9f43,#ee5a24);color:#fff}
+.s4 .stage-num{background:linear-gradient(135deg,#ee5a24,#c0392b);color:#fff}
+.s5 .stage-num{background:linear-gradient(135deg,#00d282,#00b894);color:#08111f}
+.loc-local{background:rgba(113,216,255,.12);color:#71d8ff;border:1px solid rgba(113,216,255,.25)}
+.loc-cloud{background:rgba(255,159,67,.12);color:#ff9f43;border:1px solid rgba(255,159,67,.25)}
+.loc-both{background:rgba(0,210,130,.12);color:#00d282;border:1px solid rgba(0,210,130,.25)}
+.tech-tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:.65rem;font-weight:600;margin-right:.3rem;margin-top:.3rem;background:rgba(58,163,255,.12);color:#71d8ff;border:1px solid rgba(58,163,255,.2)}
+.watermark{text-align:center;margin-top:2.5rem;color:#9fb3d1;font-size:.8rem;opacity:.6}
+.legend{display:flex;gap:1.2rem;justify-content:center;margin-bottom:2rem;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:#9fb3d1}
+.legend-dot{width:10px;height:10px;border-radius:50%}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="container">
+<h1>🔍 DeepFake Detector Pipeline</h1>
+<p class="subtitle">End-to-end architecture — from image upload to REAL/FAKE verdict</p>
+<div class="legend">
+<div class="legend-item"><div class="legend-dot" style="background:#71d8ff"></div>Runs on your PC (CPU)</div>
+<div class="legend-item"><div class="legend-dot" style="background:#ff9f43"></div>Runs on Hugging Face Cloud</div>
+<div class="legend-item"><div class="legend-dot" style="background:#00d282"></div>Response / Display</div>
+</div>
+
+<!-- Stage 0: Frontend -->
+<div class="stage s0">
+<div class="stage-header">
+<div class="stage-num">0</div>
+<div class="stage-title">Frontend — Streamlit UI</div>
+<span class="stage-loc loc-local">📍 Local · Port 8501</span>
+</div>
+<div class="card">
+<div class="steps">
+<div class="step"><div class="step-icon">📤</div><div class="step-name">Upload Image</div><div class="step-desc">User selects JPG/PNG/WEBP via file uploader widget</div><div><span class="tech-tag">Streamlit</span></div></div>
+<div class="arrow-right"><svg viewBox="0 0 24 24" fill="none" stroke="#3aa3ff" stroke-width="2"><path d="M5 12h14m-4-4 4 4-4 4"/></svg></div>
+<div class="step"><div class="step-icon">👁️</div><div class="step-name">Preview</div><div class="step-desc">Thumbnail shown to user before analysis</div></div>
+<div class="arrow-right"><svg viewBox="0 0 24 24" fill="none" stroke="#3aa3ff" stroke-width="2"><path d="M5 12h14m-4-4 4 4-4 4"/></svg></div>
+<div class="step"><div class="step-icon">🚀</div><div class="step-name">Send to Backend</div><div class="step-desc">HTTP POST /predict with image bytes as multipart form data</div><div><span class="tech-tag">requests</span></div></div>
+</div>
+</div>
+</div>
+
+<div class="arrow-down"><svg viewBox="0 0 24 24" fill="none" stroke="#3aa3ff" stroke-width="2.5"><path d="M12 5v14m-4-4 4 4 4-4"/></svg></div>
+
+<!-- Stage 1: Backend Validation -->
+<div class="stage s1">
+<div class="stage-header">
+<div class="stage-num">1</div>
+<div class="stage-title">Backend — FastAPI Validation</div>
+<span class="stage-loc loc-local">📍 Local · Port 8000</span>
+</div>
+<div class="card">
+<div class="steps">
+<div class="step"><div class="step-icon">🔒</div><div class="step-name">Validate File Type</div><div class="step-desc">Check extension (.jpg/.png/.webp) and MIME content type</div></div>
+<div class="arrow-right"><svg viewBox="0 0 24 24" fill="none" stroke="#71d8ff" stroke-width="2"><path d="M5 12h14m-4-4 4 4-4 4"/></svg></div>
+<div class="step"><div class="step-icon">🖼️</div><div class="step-name">Validate Image</div><div class="step-desc">Open with PIL, verify integrity, convert to RGB</div><div><span class="tech-tag">Pillow</span></div></div>
+<div class="arrow-right"><svg viewBox="0 0 24 24" fill="none" stroke="#71d8ff" stroke-width="2"><path d="M5 12h14m-4-4 4 4-4 4"/></svg></div>
+<div class="step"><div class="step-icon">⚡</div><div class="step-name">Thread Pool</div><div class="step-desc">Run prediction in threadpool to not block async event loop</div><div><span class="tech-tag">FastAPI</span><span class="tech-tag">Uvicorn</span></div></div>
+</div>
+</div>
+</div>
+
+<div class="arrow-down"><svg viewBox="0 0 24 24" fill="none" stroke="#a29bfe" stroke-width="2.5"><path d="M12 5v14m-4-4 4 4 4-4"/></svg></div>
+
+<!-- Stage 2: Local Preprocessing -->
+<div class="stage s2">
+<div class="stage-header">
+<div class="stage-num">2</div>
+<div class="stage-title">Local Preprocessing — Face + Forensics</div>
+<span class="stage-loc loc-local">📍 Local · CPU Only</span>
+</div>
+<div class="card">
+<div class="steps" style="margin-bottom:.8rem">
+<div class="step"><div class="step-icon">👤</div><div class="step-name">Face Detection</div><div class="step-desc">Haar Cascade finds all faces → picks largest by area</div><div><span class="tech-tag">OpenCV</span></div></div>
+<div class="arrow-right"><svg viewBox="0 0 24 24" fill="none" stroke="#a29bfe" stroke-width="2"><path d="M5 12h14m-4-4 4 4-4 4"/></svg></div>
+<div class="step"><div class="step-icon">✂️</div><div class="step-name">Crop + Resize</div><div class="step-desc">Add 18% margin around face → crop → resize to 224×224</div><div><span class="tech-tag">Pillow</span></div></div>
+</div>
+<div class="steps">
+<div class="step" style="border-color:rgba(162,155,254,.25);background:rgba(162,155,254,.08)"><div class="step-icon">🔬</div><div class="step-name" style="color:#a29bfe">ELA Image</div><div class="step-desc">Re-save as JPEG Q90 → pixel diff with original → scale contrast. Exposes compression inconsistencies in pasted regions</div></div>
+<div class="step" style="border-color:rgba(162,155,254,.25);background:rgba(162,155,254,.08)"><div class="step-icon">📊</div><div class="step-name" style="color:#a29bfe">Laplacian Residual</div><div class="step-desc">Grayscale → Laplacian filter (2nd derivative) → normalize. Exposes unnatural smoothness or sharpening halos</div><div><span class="tech-tag">OpenCV</span><span class="tech-tag">NumPy</span></div></div>
+</div>
+</div>
+</div>
+
+<div class="arrow-down"><svg viewBox="0 0 24 24" fill="none" stroke="#ff9f43" stroke-width="2.5"><path d="M12 5v14m-4-4 4 4 4-4"/></svg></div>
+
+<!-- Stage 3: Ensemble -->
+<div class="stage s3">
+<div class="stage-header">
+<div class="stage-num">3</div>
+<div class="stage-title">Ensemble Classifiers — 3 Models Vote</div>
+<span class="stage-loc loc-cloud">☁️ Hugging Face Cloud</span>
+</div>
+<div class="card">
+<p style="font-size:.8rem;color:#9fb3d1;margin-bottom:.8rem">The 224×224 face crop JPEG is sent to 3 independent HF image-classification models. Each returns a fake_probability score.</p>
+<div class="models-grid">
+<div class="model-card"><div class="step-icon">🤖</div><div class="step-name">Model 1</div><div class="step-desc">deepfake-detector-model-v1</div><div class="step-desc" style="margin-top:.3rem;color:#ff9f43">→ fake_probability: 0.87</div></div>
+<div class="model-card"><div class="step-icon">🤖</div><div class="step-name">Model 2</div><div class="step-desc">Deep-Fake-Detector-v2-Model</div><div class="step-desc" style="margin-top:.3rem;color:#ff9f43">→ fake_probability: 0.91</div></div>
+<div class="model-card"><div class="step-icon">🤖</div><div class="step-name">Model 3</div><div class="step-desc">Deepfake-Detect-Siglip2</div><div class="step-desc" style="margin-top:.3rem;color:#ff9f43">→ fake_probability: 0.84</div></div>
+</div>
+<p style="font-size:.75rem;color:#9fb3d1;margin-top:.7rem">⚡ If a model fails/times out, it's marked "failed" — the pipeline continues with remaining evidence.</p>
+</div>
+</div>
+
+<div class="arrow-down"><svg viewBox="0 0 24 24" fill="none" stroke="#ee5a24" stroke-width="2.5"><path d="M12 5v14m-4-4 4 4 4-4"/></svg></div>
+
+<!-- Stage 4: VLM Judge -->
+<div class="stage s4">
+<div class="stage-header">
+<div class="stage-num">4</div>
+<div class="stage-title">VLM Final Judge — The Brain</div>
+<span class="stage-loc loc-cloud">☁️ Hugging Face Cloud</span>
+</div>
+<div class="card">
+<div class="steps" style="margin-bottom:.8rem">
+<div class="step vlm-card" style="flex:2"><div class="step-icon">🧠</div><div class="step-name">Cohere Aya Vision 32B</div><div class="step-desc">Receives 3 images (face crop + ELA + Laplacian) + ensemble scores + Laplacian variance. Acts as a forensic image analyst making the final REAL/FAKE judgment.</div><div><span class="tech-tag" style="background:rgba(238,90,36,.15);color:#ee5a24;border-color:rgba(238,90,36,.3)">Vision LLM</span><span class="tech-tag" style="background:rgba(238,90,36,.15);color:#ee5a24;border-color:rgba(238,90,36,.3)">Multimodal</span></div></div>
+</div>
+<div class="steps">
+<div class="step" style="border-color:rgba(238,90,36,.2)"><div class="step-icon">🔍</div><div class="step-name" style="color:#ee5a24">Inspects Face</div><div class="step-desc">Blending, symmetry, warped regions, skin texture, lighting</div></div>
+<div class="step" style="border-color:rgba(238,90,36,.2)"><div class="step-icon">🔬</div><div class="step-name" style="color:#ee5a24">Inspects ELA</div><div class="step-desc">Compression spikes around eyes, mouth, hairline, jaw</div></div>
+<div class="step" style="border-color:rgba(238,90,36,.2)"><div class="step-icon">📊</div><div class="step-name" style="color:#ee5a24">Inspects Residual</div><div class="step-desc">Sharpening halos, missing pores, frequency inconsistencies</div></div>
+<div class="step" style="border-color:rgba(238,90,36,.2)"><div class="step-icon">📈</div><div class="step-name" style="color:#ee5a24">Weighs Scores</div><div class="step-desc">Ensemble scores as supporting evidence, not sole reason</div></div>
+</div>
+</div>
+</div>
+
+<div class="arrow-down"><svg viewBox="0 0 24 24" fill="none" stroke="#00d282" stroke-width="2.5"><path d="M12 5v14m-4-4 4 4 4-4"/></svg></div>
+
+<!-- Stage 5: Response -->
+<div class="stage s5">
+<div class="stage-header">
+<div class="stage-num">5</div>
+<div class="stage-title">Response — Result Display</div>
+<span class="stage-loc loc-both">🔄 Backend → Frontend</span>
+</div>
+<div class="card">
+<p style="font-size:.8rem;color:#9fb3d1;margin-bottom:.8rem">VLM returns structured JSON → Backend assembles PredictionResponse → Frontend renders the result card</p>
+<div class="output-grid">
+<div class="output-item"><div class="step-icon">✅</div><div class="step-name">REAL / FAKE Label</div></div>
+<div class="output-item"><div class="step-icon">📊</div><div class="step-name">Confidence %</div></div>
+<div class="output-item"><div class="step-icon">💬</div><div class="step-name">Justification</div></div>
+<div class="output-item"><div class="step-icon">👁️</div><div class="step-name">Artifact Observations</div></div>
+<div class="output-item"><div class="step-icon">🤖</div><div class="step-name">Ensemble Breakdown</div></div>
+<div class="output-item"><div class="step-icon">📐</div><div class="step-name">Preprocessing Metadata</div></div>
+</div>
+</div>
+</div>
+
+<div class="watermark">Made by Devansh · DeepFake Detector Pipeline v1.0</div>
+</div>
+</body>
+</html>
